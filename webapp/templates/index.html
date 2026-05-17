@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShrimpVision</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css', v=static_version) }}">
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav class="nav">
+        <span class="nav-brand">🦐 ShrimpVision</span>
+        <div class="nav-links">
+            <a href="#" class="nav-link active" data-section="upload">Detect</a>
+            <a href="#" class="nav-link" data-section="results">Results</a>
+            <a href="#" class="nav-link" data-section="dashboard">Dashboard</a>
+        </div>
+        <span class="nav-status" id="nav-status"></span>
+    </nav>
+
+    <!-- ── SECTION 1: UPLOAD ── -->
+    <section id="upload-section" class="section">
+        <div class="page-center">
+
+            <!-- Model Selector -->
+            <div class="block">
+                <p class="label">Select Model</p>
+                <div class="model-pills" id="model-selector-grid">
+                    <!-- rendered by model-selector.js -->
+                </div>
+            </div>
+
+            <!-- Drop Zone -->
+            <div class="block">
+                <div class="drop-zone" id="upload-zone">
+                    <div id="upload-inner">
+                        <p class="drop-text">Drop image or video here</p>
+                        <p class="drop-sub">or <button type="button" id="upload-browse" class="link-btn">choose a
+                                file</button></p>
+                        <p class="drop-hint">JPG · PNG · MP4 · MOV · AVI — max 500 MB</p>
+                        <input type="file" id="file-input" accept="image/*,video/*" hidden>
+                    </div>
+                    <div id="upload-progress" hidden>
+                        <p id="progress-status" class="progress-text">Uploading…</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <p id="progress-filename" class="drop-hint"></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ── SECTION 2: RESULTS ── -->
+    <section id="results-section" class="section" hidden>
+        <div class="container">
+
+            <div class="results-header">
+                <h2 class="section-title">Results</h2>
+                <div class="results-header-right">
+                    <span id="result-model-badge" class="model-tag" hidden></span>
+                    <button class="btn-ghost" id="btn-new-upload">+ New</button>
+                </div>
+            </div>
+
+            <!-- Image view -->
+            <div id="result-image-view" hidden>
+                <img id="result-annotated-image" class="result-img" alt="Annotated result">
+            </div>
+
+            <!-- Video view -->
+            <div id="result-video-view" hidden>
+                <div class="video-wrap">
+                    <canvas id="video-canvas"></canvas>
+                    <div class="video-overlay" id="video-overlay">
+                        <p id="video-progress-label">Processing…</p>
+                    </div>
+                </div>
+
+                <!-- Live stats strip -->
+                <div class="live-strip">
+                    <div class="live-item"><span class="live-key">Frame</span><span id="live-frame"
+                            class="live-val">—</span></div>
+                    <div class="live-item"><span class="live-key">Count</span><span id="live-count"
+                            class="live-val">—</span></div>
+                    <div class="live-item"><span class="live-key">Active</span><span id="live-active"
+                            class="live-val green">—</span></div>
+                    <div class="live-item"><span class="live-key">Inactive</span><span id="live-inactive"
+                            class="live-val red">—</span></div>
+                    <div class="live-item"><span class="live-key">Activity Score</span><span id="live-health"
+                            class="live-val">—</span></div>
+                    <div class="live-item"><span class="live-key">Speed</span><span id="live-fps"
+                            class="live-val">—</span></div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ── SECTION 3: DASHBOARD ── -->
+    <section id="dashboard-section" class="section" hidden>
+        <div class="container">
+
+            <div class="results-header">
+                <h2 class="section-title">Dashboard</h2>
+                <button class="btn-ghost" id="btn-export-report" disabled>Export JSON</button>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Total Shrimp</span>
+                    <span class="stat-val" id="stat-total">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Active</span>
+                    <span class="stat-val green" id="stat-active">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Inactive</span>
+                    <span class="stat-val red" id="stat-inactive">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Activity Score</span>
+                    <span class="stat-val" id="stat-health-score">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Inf. Speed</span>
+                    <span class="stat-val" id="stat-inf-speed">—</span>
+                </div>
+            </div>
+
+            <!-- Behavior status banner -->
+            <div class="health-banner" id="health-banner" hidden>
+                <span id="health-banner-icon"></span>
+                <div>
+                    <strong id="health-banner-title"></strong>
+                    <p id="health-banner-desc" class="health-desc"></p>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-row">
+                <div class="chart-box chart-box--donut">
+                    <p class="chart-title">Activity Split</p>
+                    <canvas id="chart-donut"></canvas>
+                </div>
+                <div class="chart-box chart-box--wide">
+                    <p class="chart-title">Count Over Time</p>
+                    <div class="timeline-layers">
+                        <div class="timeline-layer">
+                            <div class="timeline-layer-head">
+                                <span class="timeline-dot timeline-dot--active"></span>
+                                <span>Active</span>
+                            </div>
+                            <div class="timeline-canvas-wrap">
+                                <canvas id="chart-active-timeline"></canvas>
+                            </div>
+                        </div>
+                        <div class="timeline-layer">
+                            <div class="timeline-layer-head">
+                                <span class="timeline-dot timeline-dot--inactive"></span>
+                                <span>Inactive</span>
+                            </div>
+                            <div class="timeline-canvas-wrap">
+                                <canvas id="chart-inactive-timeline"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details Table -->
+            <div id="details-card" class="table-box" hidden>
+                <p class="chart-title">Detection Details</p>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="details-tbody"></tbody>
+                </table>
+            </div>
+
+        </div>
+    </section>
+
+    <footer class="footer">ShrimpVision</footer>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/app.js', v=static_version) }}"></script>
+    <script src="{{ url_for('static', filename='js/model-selector.js', v=static_version) }}"></script>
+    <script src="{{ url_for('static', filename='js/upload.js', v=static_version) }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js', v=static_version) }}"></script>
+    <script src="{{ url_for('static', filename='js/video-stream.js', v=static_version) }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: shrimpvision
+    env: python
+    plan: free
+    buildCommand: pip install -r webapp/requirements.txt
+    startCommand: gunicorn --chdir webapp app:app --bind 0.0.0.0:$PORT --timeout 300
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: YOLO_DEVICE
+        value: cpu

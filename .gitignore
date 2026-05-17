@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Local webapp runtime files
+webapp/uploads/
+webapp/results/
+webapp/*.log
+webapp/tmp_*.log
+
+# Browser/test artifacts
+.playwright-cli/
+output/
+.vercel/
+.vercelignore
+vercel_static/
+Dockerfile
+.dockerignore
+api/
+
+# Training datasets and generated reports
+dataset/
+roboflow/
+runs/
+experiments/
+tmp_chapter4_figures/
+tmp_chapter4_predict/
+rendered_*/
+*.docx
+*.log
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+debug_*.jpg
+temp_*.jpg
+test_*.jpg
+senior_project_*_extracted.txt
+
+# Local research/training scripts and configs outside the deployed webapp
+/*.py
+/AI_Thesis_Master_Plan.md
+/data*.yaml
+/requirements.txt
+
+# Keep only the runtime model files used by the web app.
+*.pt
+!yolov5su.pt
+!yolov8s.pt
+!yolov10s.pt
