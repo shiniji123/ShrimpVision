@@ -2,6 +2,14 @@
 
 ShrimpVision is a Flask web application for shrimp detection, counting, and behavior activity analysis using YOLO models. It supports image uploads, video uploads, model switching, real-time video processing, and a simple dashboard for reviewing detection results.
 
+## Live Demo
+
+Try the deployed app here:
+
+```text
+https://shrimpvision.onrender.com
+```
+
 ## Features
 
 - Detect and count shrimp in images and videos.
