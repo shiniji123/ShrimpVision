@@ -17,8 +17,6 @@ output/
 .vercel/
 .vercelignore
 vercel_static/
-Dockerfile
-.dockerignore
 api/
 
 # Training datasets and generated reports

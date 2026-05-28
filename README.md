@@ -18,7 +18,8 @@ https://shrimpvision.onrender.com
 - Show annotated image and video frames.
 - Estimate shrimp activity from frame-to-frame centroid movement.
 - Display summary metrics, charts, and exportable JSON results.
-- Ready for deployment on Render with `render.yaml`.
+- Ready for deployment on Hugging Face Spaces with `Dockerfile`, or Render with
+  `render.yaml` for lighter demos.
 
 ## Project Structure
 
@@ -37,6 +38,8 @@ https://shrimpvision.onrender.com
 +-- yolov10s.pt                 # YOLOv10 fallback model
 +-- render.yaml                 # Render deployment config
 +-- DEPLOY_RENDER.md            # Render deployment notes
++-- Dockerfile                  # Hugging Face Spaces Docker deployment
++-- DEPLOY_HUGGINGFACE.md       # Hugging Face Spaces deployment notes
 ```
 
 ## Models
@@ -209,13 +212,20 @@ Videos:
 - MKV
 - WEBM
 
-Maximum upload size is 500 MB.
+Maximum upload size defaults to 75 MB for hosted deployments.
 
 ## Behavior Analysis Notes
 
 ShrimpVision estimates activity from detection centroids across video frames. It calculates metrics such as active ratio, average velocity, velocity variance, and spatial spread.
 
 The behavior output is an activity indicator, not a clinical disease diagnosis. Real shrimp health assessment should be confirmed with proper aquaculture and veterinary methods.
+
+## Deploy to Hugging Face Spaces
+
+For free video inference, Hugging Face Spaces is recommended because CPU Basic
+Spaces provide more memory than Render Free. Use the included Dockerfile.
+
+See `DEPLOY_HUGGINGFACE.md`.
 
 ## Deploy to Render
 
@@ -239,6 +249,9 @@ Environment variables:
 PYTHON_VERSION=3.11.9
 YOLO_DEVICE=cpu
 ```
+
+Render Free can still run out of memory with YOLO video inference. If that
+happens, use Hugging Face Spaces instead.
 
 For more details, see `DEPLOY_RENDER.md`.
 
