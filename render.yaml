@@ -4,10 +4,26 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r webapp/requirements.txt
-    startCommand: gunicorn --chdir webapp app:app --bind 0.0.0.0:$PORT --timeout 300
+    startCommand: gunicorn --chdir webapp app:app --bind 0.0.0.0:$PORT --workers 1 --threads 1 --timeout 300 --max-requests 20 --max-requests-jitter 5
     autoDeploy: true
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: YOLO_DEVICE
         value: cpu
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: UPLOAD_LIMIT_MB
+        value: "75"
+      - key: VIDEO_FRAME_SKIP
+        value: "5"
+      - key: MAX_VIDEO_FRAMES
+        value: "300"
+      - key: VIDEO_MAX_DIM
+        value: "960"
+      - key: STREAM_FRAME_EVERY
+        value: "20"
+      - key: STREAM_JPEG_QUALITY
+        value: "55"
+      - key: MAX_CACHED_MODELS
+        value: "1"

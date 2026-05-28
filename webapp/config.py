@@ -8,6 +8,26 @@ import os
 from pathlib import Path
 
 
+def _env_int(name: str, default: int, minimum: int | None = None) -> int:
+    try:
+        value = int(os.environ.get(name, default))
+    except (TypeError, ValueError):
+        value = default
+    if minimum is not None:
+        value = max(minimum, value)
+    return value
+
+
+def _env_optional_int(name: str, default: int | None = None) -> int | None:
+    raw = os.environ.get(name)
+    if raw in (None, "", "none", "None"):
+        return default
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        return default
+
+
 class Config:
     """Base configuration."""
 
@@ -75,7 +95,8 @@ class Config:
 
     # ── Flask ──────────────────────────────────────────────────
     SECRET_KEY = os.environ.get("SECRET_KEY", "shrimp-vision-dev-key-2026")
-    MAX_CONTENT_LENGTH = 500 * 1024 * 1024   # 500 MB max upload
+    UPLOAD_LIMIT_MB = _env_int("UPLOAD_LIMIT_MB", 75, minimum=1)
+    MAX_CONTENT_LENGTH = UPLOAD_LIMIT_MB * 1024 * 1024
     ALLOWED_IMAGE_EXT = {"jpg", "jpeg", "png", "webp", "bmp", "tiff"}
     ALLOWED_VIDEO_EXT = {"mp4", "mov", "avi", "mkv", "webm"}
 
@@ -87,10 +108,12 @@ class Config:
     }                                # <50% → low-activity behavior
 
     # ── Video Processing ───────────────────────────────────────
-    VIDEO_FRAME_SKIP = 1             # process every Nth frame (1 = all frames)
-    MAX_VIDEO_FRAMES = None          # None = process the full video
-    STREAM_FRAME_EVERY = 10          # send preview image every N processed frames
-    STREAM_JPEG_QUALITY = 65         # lower quality keeps long SSE streams responsive
+    VIDEO_FRAME_SKIP = _env_int("VIDEO_FRAME_SKIP", 5, minimum=1)
+    MAX_VIDEO_FRAMES = _env_optional_int("MAX_VIDEO_FRAMES", 300)
+    VIDEO_MAX_DIM = _env_int("VIDEO_MAX_DIM", 960, minimum=320)
+    STREAM_FRAME_EVERY = _env_int("STREAM_FRAME_EVERY", 20, minimum=1)
+    STREAM_JPEG_QUALITY = _env_int("STREAM_JPEG_QUALITY", 55, minimum=25)
+    MAX_CACHED_MODELS = _env_int("MAX_CACHED_MODELS", 1, minimum=1)
 
     @classmethod
     def init_dirs(cls):

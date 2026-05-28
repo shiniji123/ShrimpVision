@@ -24,6 +24,8 @@ import time
 import numpy as np
 import threading
 import logging
+import gc
+from collections import OrderedDict
 from pathlib import Path
 from typing import Generator
 
@@ -51,7 +53,7 @@ class InferenceEngine:
     def __init__(self):
         if self._initialized:
             return
-        self._model_cache: dict = {}
+        self._model_cache: OrderedDict[str, object] = OrderedDict()
         self._key_locks: dict = {}
         self._cache_lock = threading.Lock()
         self._initialized = True
@@ -78,15 +80,31 @@ class InferenceEngine:
 
     def get_model(self, model_key: str):
         if model_key in self._model_cache:
+            self._model_cache.move_to_end(model_key)
             return self._model_cache[model_key]
         key_lock = self._get_key_lock(model_key)
         with key_lock:
             if model_key not in self._model_cache:
                 self._model_cache[model_key] = self._load_model(model_key)
+                self._model_cache.move_to_end(model_key)
+                self._evict_old_models()
         return self._model_cache[model_key]
 
     def loaded_models(self) -> list[str]:
         return list(self._model_cache.keys())
+
+    def _evict_old_models(self):
+        max_cached = max(1, int(getattr(Config, "MAX_CACHED_MODELS", 1)))
+        while len(self._model_cache) > max_cached:
+            old_key, _old_model = self._model_cache.popitem(last=False)
+            logger.info("Evicted model '%s' from cache to keep memory usage low.", old_key)
+        gc.collect()
+        try:
+            import torch
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        except Exception:
+            pass
 
     @property
     def model(self):
@@ -251,6 +269,7 @@ class InferenceEngine:
                 continue
 
             consecutive_bad = 0  # reset counter on a good frame
+            frame = self._resize_for_inference(frame)
 
             # ── Inference + timing ────────────────────────────────
             t0 = time.perf_counter()
@@ -367,6 +386,17 @@ class InferenceEngine:
             return None
 
         return frame
+
+    @staticmethod
+    def _resize_for_inference(frame: np.ndarray) -> np.ndarray:
+        max_dim = int(getattr(Config, "VIDEO_MAX_DIM", 960))
+        h, w = frame.shape[:2]
+        longest = max(h, w)
+        if longest <= max_dim:
+            return frame
+        scale = max_dim / float(longest)
+        new_size = (max(1, int(w * scale)), max(1, int(h * scale)))
+        return cv2.resize(frame, new_size, interpolation=cv2.INTER_AREA)
 
     # ── Helpers ─────────────────────────────────────────────────
 

@@ -5,6 +5,7 @@
 const Upload = (() => {
     const ALLOWED_IMAGE = ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'tiff'];
     const ALLOWED_VIDEO = ['mp4', 'mov', 'avi', 'mkv', 'webm'];
+    const MAX_UPLOAD_MB = 75;
 
     let zone, inner, fileInput, browseBtn;
     let progressWrap, progressFill, progressStatus, progressFilename;
@@ -47,8 +48,8 @@ const Upload = (() => {
             alert(`Unsupported file type: .${file.name.split('.').pop()}`);
             return;
         }
-        if (file.size > 500 * 1024 * 1024) {
-            alert('File too large (max 500 MB)');
+        if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
+            alert(`File too large (max ${MAX_UPLOAD_MB} MB)`);
             return;
         }
 

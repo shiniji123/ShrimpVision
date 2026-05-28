@@ -21,6 +21,7 @@ from flask import (
     send_from_directory,
     Response,
 )
+from werkzeug.exceptions import RequestEntityTooLarge
 
 from config import Config
 from inference_engine import InferenceEngine
@@ -69,6 +70,13 @@ def _save_upload(file) -> tuple[str, str]:
     save_path = str(Config.UPLOAD_FOLDER / unique_name)
     file.save(save_path)
     return save_path, file_type
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_file_too_large(_error):
+    return jsonify({
+        "error": f"File too large. Maximum upload size is {Config.UPLOAD_LIMIT_MB} MB.",
+    }), 413
 
 
 def _parse_model_key(request_obj) -> str:
